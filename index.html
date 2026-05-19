@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>David's Meal Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<!-- Prevent theme flash: apply saved theme before paint -->
+<script>
+  (function(){
+    var t = localStorage.getItem('mealplan-theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+
+<style>
+/* ── Tokens ──────────────────────────────────────────────── */
+:root {
+  --bg:          #f7f3ee;
+  --surface:     #ffffff;
+  --surface2:    #f0ebe4;
+  --accent:      #c8602a;
+  --accent-dim:  #fdf0e8;
+  --green:       #3d6b4f;
+  --green-dim:   #e8f0eb;
+  --text:        #1a1a1a;
+  --muted:       #7a7060;
+  --border:      #e0d9d0;
+  --today-ring:  rgba(200,96,42,0.18);
+  --shadow-sm:   0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md:   0 4px 20px rgba(0,0,0,0.09);
+  --r:           14px;
+  --serif:       'Playfair Display', Georgia, serif;
+  --sans:        'DM Sans', system-ui, sans-serif;
+}
+
+[data-theme="dark"] {
+  --bg:         #111009;
+  --surface:    #1c1a16;
+  --surface2:   #252219;
+  --accent:     #e07848;
+  --accent-dim: #271a10;
+  --green:      #6aab80;
+  --green-dim:  #12231a;
+  --text:       #ede9e2;
+  --muted:      #9a9080;
+  --border:     #2d2921;
+  --today-ring: rgba(224,120,72,0.2);
+  --shadow-sm:  0 2px 8px rgba(0,0,0,0.3);
+  --shadow-md:  0 4px 20px rgba(0,0,0,0.4);
+}
+
+/* ── Reset ───────────────────────────────────────────────── */
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background .3s, color .3s;
+  overscroll-behavior-y: contain;
+}
+
+/* ── Sticky Header ───────────────────────────────────────── */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: background .3s, border-color .3s;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 8px;
+  gap: 12px;
+}
+
+.header-title {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.header-sub {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-weight: 300;
+  margin-top: 1px;
+  line-height: 1.3;
+}
+
+.theme-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 13px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text);
+  font-family: var(--sans);
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.theme-btn:active { transform: scale(0.93); }
+
+/* ── Tabs ────────────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  border-top: 1px solid var(--border);
+}
+.tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--muted);
+  padding: 10px 8px;
+  cursor: pointer;
+  transition: all .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ── Main ────────────────────────────────────────────────── */
+.main {
+  padding: 14px 12px 80px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ── Today Banner ────────────────────────────────────────── */
+.today-banner {
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  border-radius: var(--r);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--accent);
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+/* ── Day Cards ───────────────────────────────────────────── */
+.day-card {
+  background: var(--surface);
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+  margin-bottom: 10px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s, border-color .2s;
+  scroll-margin-top: 90px;
+}
+.day-card.today {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--today-ring), var(--shadow-md);
+}
+
+.day-header {
+  display: flex;
+  align-items: center;
+  padding: 13px 14px;
+  cursor: pointer;
+  user-select: none;
+  gap: 8px;
+  min-height: 52px;
+  -webkit-tap-highlight-color: transparent;
+}
+.today-badge {
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  flex-shrink: 0;
+}
+.day-label {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  flex: 1;
+}
+.day-cal {
+  font-size: 0.75rem;
+  color: var(--muted);
+  background: var(--surface2);
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-weight: 500;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.chevron {
+  color: var(--muted);
+  font-size: 0.8rem;
+  transition: transform .28s cubic-bezier(.4,0,.2,1);
+  flex-shrink: 0;
+  line-height: 1;
+}
+.day-card.open .chevron { transform: rotate(180deg); }
+
+/* Smooth accordion via max-height */
+.day-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .35s cubic-bezier(.4,0,.2,1);
+}
+.day-card.open .day-body { max-height: 700px; }
+
+.day-body-inner {
+  border-top: 1px solid var(--border);
+  padding: 4px 14px 14px;
+}
+
+/* ── Meal Rows ───────────────────────────────────────────── */
+.meal-row {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px dashed var(--border);
+  align-items: start;
+}
+.meal-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+.meal-type {
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+  color: var(--green);
+  padding-top: 3px;
+  line-height: 1.3;
+}
+.meal-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+.meal-detail {
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin-top: 2px;
+  font-weight: 300;
+  line-height: 1.4;
+}
+.meal-cal {
+  display: inline-block;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 999px;
+  margin-top: 4px;
+}
+
+/* ── Shopping Progress ───────────────────────────────────── */
+.shop-progress {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 13px 15px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.shop-progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 0.84rem;
+}
+.shop-progress-label .label { font-weight: 500; }
+.shop-progress-label .count { color: var(--muted); font-size: 0.78rem; }
+
+.bar-bg {
+  background: var(--surface2);
+  border-radius: 999px;
+  height: 6px;
+  overflow: hidden;
+}
+.bar-fill {
+  background: var(--green);
+  height: 100%;
+  border-radius: 999px;
+  width: 0%;
+  transition: width .4s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── Shopping Sections ───────────────────────────────────── */
+.shop-section {
+  background: var(--surface);
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+  padding: 14px 14px 12px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+}
+.shop-section-title {
+  font-family: var(--serif);
+  font-size: 0.98rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.shop-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  line-height: 1.3;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: var(--surface2);
+  cursor: pointer;
+  transition: opacity .15s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
+}
+.shop-item:active { opacity: .65; }
+.shop-item.checked {
+  opacity: .38;
+  text-decoration: line-through;
+  text-decoration-color: var(--muted);
+}
+.check-box {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #fff;
+  background: var(--surface);
+  transition: all .15s;
+}
+.shop-item.checked .check-box {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.shop-footer {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+  padding: 10px 0 4px;
+}
+.shop-footer strong { color: var(--accent); }
+
+.clear-btn {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 11px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--sans);
+  transition: background .2s, color .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.clear-btn:active { background: var(--surface2); color: var(--text); }
+
+/* ── Desktop ─────────────────────────────────────────────── */
+@media (min-width: 480px) {
+  .header-title   { font-size: 1.4rem; }
+  .shop-grid      { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 640px) {
+  .main           { padding: 20px 20px 80px; }
+  .day-body-inner { padding: 4px 18px 18px; }
+  .meal-row       { grid-template-columns: 82px 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────── -->
+<header class="site-header">
+  <div class="header-top">
+    <div>
+      <div class="header-title">David's Meal Plan</div>
+      <div class="header-sub">~2,100 cal/day · 95 kg · 500 cal deficit · 15 min meals</div>
+    </div>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">
+      <span id="themeIcon"></span>
+      <span id="themeLabel"></span>
+    </button>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('plan', this)">📅 Meal Plan</button>
+    <button class="tab-btn"        onclick="switchTab('shop', this)">🛒 Shopping</button>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- ── Meal Plan Tab ──────────────────────────────────── -->
+  <div class="tab-content active" id="tab-plan"></div>
+
+  <!-- ── Shopping Tab ──────────────────────────────────── -->
+  <div class="tab-content" id="tab-shop">
+
+    <div class="shop-progress">
+      <div class="shop-progress-label">
+        <span class="label">Shopping progress</span>
+        <span class="count" id="shop-count">0 / 0 items</span>
+      </div>
+      <div class="bar-bg"><div class="bar-fill" id="bar-fill"></div></div>
+    </div>
+
+    <div class="shop-section">
+      <div class="shop-section-title">🥩 Proteins</div>
+      <div class="shop-grid" id="cat-proteins"></div>
+    </div>
+    <div class="shop-section">
+      <div class="shop-section-title">🌾 Carbs &amp; Grains</div>
+      <div class="shop-grid" id="cat-carbs"></div>
+    </div>
+    <div class="shop-section">
+      <div class="shop-section-title">🥦 Vegetables</div>
+      <div class="shop-grid" id="cat-veg"></div>
+    </div>
+    <div class="shop-section">
+      <div class="shop-section-title">🍎 Fruit</div>
+      <div class="shop-grid" id="cat-fruit"></div>
+    </div>
+    <div class="shop-section">
+      <div class="shop-section-title">🧴 Pantry &amp; Other</div>
+      <div class="shop-grid" id="cat-pantry"></div>
+    </div>
+
+    <div class="shop-footer">
+      Estimated weekly total: <strong>$80–100</strong> · Tap items to check them off
+    </div>
+    <button class="clear-btn" onclick="clearChecks()">↺ Clear all checks</button>
+  </div>
+
+</main>
+
+<script>
+// ── Meal data ───────────────────────────────────────────────
+const DAYS = [
+  { name:'Monday',    cal:'~2,080 cal', meals:[
+    { type:'Breakfast', name:'3 Scrambled Eggs + 2 Toast',                        detail:'Whole grain bread · black coffee',                     cal:'~400 cal' },
+    { type:'Lunch',     name:'Canned Tuna + Rice Cakes + Carrots + Apple',         detail:'No-cook · ready in 2 min',                             cal:'~550 cal' },
+    { type:'Dinner',    name:'Baked Salmon + Microwave Broccoli + Rice',           detail:'10 min oven · microwavable rice pouch',                 cal:'~730 cal' },
+    { type:'Snack',     name:'Cottage Cheese + Fruit',                            detail:'Any fruit on hand',                                    cal:'~200 cal' },
+  ]},
+  { name:'Tuesday',   cal:'~2,100 cal', meals:[
+    { type:'Breakfast', name:'3 Scrambled Eggs + 2 Toast',                        detail:'Whole grain bread · black coffee',                     cal:'~400 cal' },
+    { type:'Lunch',     name:'Rotisserie Chicken + Microwave Rice + Cucumber',    detail:'Pre-cooked chicken · slice & serve',                   cal:'~550 cal' },
+    { type:'Dinner',    name:'Ground Turkey Stir-Fry + Frozen Veggies + Rice',    detail:'Soy sauce · garlic powder · 12 min total',             cal:'~730 cal' },
+    { type:'Snack',     name:'2 Hard Boiled Eggs',                                detail:'Prep Sunday night',                                    cal:'~140 cal' },
+  ]},
+  { name:'Wednesday', cal:'~2,090 cal', meals:[
+    { type:'Breakfast', name:'3 Scrambled Eggs + 2 Toast',                        detail:'Whole grain bread · black coffee',                     cal:'~400 cal' },
+    { type:'Lunch',     name:'Greek Yogurt + Banana + Almonds',                   detail:'Plain full-fat yogurt · ~25g almonds',                 cal:'~550 cal' },
+    { type:'Dinner',    name:'Pan-Fried Chicken Breast + Sweet Potato + Salad',   detail:'12 min pan · 5 min microwave sweet potato',            cal:'~740 cal' },
+    { type:'Snack',     name:'Apple + Peanut Butter',                             detail:'1 tbsp peanut butter',                                 cal:'~200 cal' },
+  ]},
+  { name:'Thursday',  cal:'~2,080 cal', meals:[
+    { type:'Breakfast', name:'3 Scrambled Eggs + 2 Toast',                        detail:'Whole grain bread · black coffee',                     cal:'~400 cal' },
+    { type:'Lunch',     name:'Canned Tuna + Rice Cakes + Carrots + Apple',        detail:'No-cook · ready in 2 min',                             cal:'~550 cal' },
+    { type:'Dinner',    name:'Baked Salmon + Microwave Broccoli + Rice',          detail:'10 min oven · microwavable rice pouch',                cal:'~730 cal' },
+    { type:'Snack',     name:'Cottage Cheese + Fruit',                            detail:'Any fruit on hand',                                    cal:'~200 cal' },
+  ]},
+  { name:'Friday',    cal:'~2,100 cal', meals:[
+    { type:'Breakfast', name:'3 Scrambled Eggs + 2 Toast',                        detail:'Whole grain bread · black coffee',                     cal:'~400 cal' },
+    { type:'Lunch',     name:'Rotisserie Chicken + Microwave Rice + Cucumber',    detail:'Pre-cooked chicken · slice & serve',                   cal:'~550 cal' },
+    { type:'Dinner',    name:'Ground Turkey Stir-Fry + Frozen Veggies + Rice',    detail:'Soy sauce · garlic powder · 12 min total',             cal:'~730 cal' },
+    { type:'Snack',     name:'2 Hard Boiled Eggs',                                detail:'Prep Sunday night',                                    cal:'~140 cal' },
+  ]},
+  { name:'Saturday',  cal:'~2,090 cal', meals:[
+    { type:'Breakfast', name:'3 Scrambled Eggs + 2 Toast',                        detail:'Whole grain bread · black coffee',                     cal:'~400 cal' },
+    { type:'Lunch',     name:'Greek Yogurt + Banana + Almonds',                   detail:'Plain full-fat yogurt · ~25g almonds',                 cal:'~550 cal' },
+    { type:'Dinner',    name:'Pan-Fried Chicken Breast + Sweet Potato + Salad',   detail:'12 min pan · 5 min microwave sweet potato',            cal:'~740 cal' },
+    { type:'Snack',     name:'Apple + Peanut Butter',                             detail:'1 tbsp peanut butter',                                 cal:'~200 cal' },
+  ]},
+  { name:'Sunday',    cal:'~2,080 cal', meals:[
+    { type:'Breakfast', name:'3 Scrambled Eggs + 2 Toast',                        detail:'Whole grain bread · black coffee',                     cal:'~400 cal' },
+    { type:'Lunch',     name:'Canned Tuna + Rice Cakes + Carrots + Apple',        detail:'No-cook · ready in 2 min',                             cal:'~550 cal' },
+    { type:'Dinner',    name:'Baked Salmon + Microwave Broccoli + Rice',          detail:'10 min oven · microwavable rice pouch',                cal:'~730 cal' },
+    { type:'Snack',     name:'Cottage Cheese + Fruit',                            detail:'Any fruit on hand',                                    cal:'~200 cal' },
+  ]},
+];
+
+// ── Shopping data ────────────────────────────────────────────
+const SHOPPING = {
+  proteins: [
+    'Eggs (18 pack)',
+    'Canned tuna (3 cans)',
+    'Rotisserie chicken (2×)',
+    'Salmon fillets (3×)',
+    'Ground turkey (500g)',
+    'Chicken breasts (2×)',
+    'Cottage cheese (tub)',
+    'Greek yogurt, plain (3×)',
+  ],
+  carbs: [
+    'Whole grain bread (loaf)',
+    'Microwavable rice (6 pouches)',
+    'Rice cakes (pack)',
+    'Sweet potatoes (2×)',
+  ],
+  veg: [
+    'Frozen broccoli (large bag)',
+    'Frozen stir-fry veggies (bag)',
+    'Baby carrots (bag)',
+    'Cucumber (2×)',
+    'Salad bag (2×)',
+  ],
+  fruit: [
+    'Apples (6×)',
+    'Bananas (bunch)',
+    'Mixed berries / fruit',
+  ],
+  pantry: [
+    'Peanut butter (jar)',
+    'Almonds (small bag)',
+    'Soy sauce (bottle)',
+    'Olive oil / cooking spray',
+    'Salt, pepper, garlic powder',
+  ],
+};
+
+// ── Helpers ─────────────────────────────────────────────────
+// getDay(): 0=Sun 1=Mon … 6=Sat  →  DAYS index: 0=Mon … 6=Sun
+function todayIdx() {
+  const d = new Date().getDay();
+  return d === 0 ? 6 : d - 1;
+}
+
+// ── Build meal plan ──────────────────────────────────────────
+function buildPlan() {
+  const container = document.getElementById('tab-plan');
+  const today = todayIdx();
+
+  // Today first, then rest of week
+  const order = Array.from({length: 7}, (_, i) => (today + i) % 7);
+
+  const banner = document.createElement('div');
+  banner.className = 'today-banner';
+  banner.innerHTML = `<span>📍</span><span>Today is <strong>${DAYS[today].name}</strong> — shown first and expanded</span>`;
+  container.appendChild(banner);
+
+  order.forEach(idx => {
+    const day    = DAYS[idx];
+    const isToday = idx === today;
+    const card   = document.createElement('div');
+    card.className = 'day-card' + (isToday ? ' today open' : '');
+
+    const mealsHtml = day.meals.map(m => `
+      <div class="meal-row">
+        <div class="meal-type">${m.type}</div>
+        <div>
+          <div class="meal-name">${m.name}</div>
+          <div class="meal-detail">${m.detail}</div>
+          <span class="meal-cal">${m.cal}</span>
+        </div>
+      </div>`).join('');
+
+    card.innerHTML = `
+      <div class="day-header" onclick="toggleDay(this)">
+        ${isToday ? '<span class="today-badge">Today</span>' : ''}
+        <span class="day-label">${day.name}</span>
+        <span class="day-cal">${day.cal}</span>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="day-body">
+        <div class="day-body-inner">${mealsHtml}</div>
+      </div>`;
+
+    container.appendChild(card);
+  });
+}
+
+function toggleDay(header) {
+  header.parentElement.classList.toggle('open');
+}
+
+// ── Build shopping list ──────────────────────────────────────
+function buildShopping() {
+  const saved = JSON.parse(localStorage.getItem('mealplan-checks') || '{}');
+
+  Object.entries(SHOPPING).forEach(([cat, items]) => {
+    const grid = document.getElementById('cat-' + cat);
+    grid.innerHTML = '';
+    items.forEach(item => {
+      const key     = cat + ':' + item;
+      const checked = !!saved[key];
+      const el      = document.createElement('div');
+      el.className  = 'shop-item' + (checked ? ' checked' : '');
+      el.dataset.key = key;
+      el.innerHTML  = `<div class="check-box">${checked ? '✓' : ''}</div><span>${item}</span>`;
+      el.onclick    = () => toggleCheck(el);
+      grid.appendChild(el);
+    });
+  });
+  updateProgress();
+}
+
+function toggleCheck(el) {
+  el.classList.toggle('checked');
+  const checked = el.classList.contains('checked');
+  el.querySelector('.check-box').textContent = checked ? '✓' : '';
+  const saved = JSON.parse(localStorage.getItem('mealplan-checks') || '{}');
+  saved[el.dataset.key] = checked;
+  localStorage.setItem('mealplan-checks', JSON.stringify(saved));
+  updateProgress();
+}
+
+function updateProgress() {
+  const all  = document.querySelectorAll('.shop-item').length;
+  const done = document.querySelectorAll('.shop-item.checked').length;
+  const pct  = all ? (done / all) * 100 : 0;
+  document.getElementById('shop-count').textContent = `${done} / ${all} items`;
+  document.getElementById('bar-fill').style.width = pct + '%';
+}
+
+function clearChecks() {
+  localStorage.removeItem('mealplan-checks');
+  buildShopping();
+}
+
+// ── Tabs ─────────────────────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── Theme ─────────────────────────────────────────────────────
+function syncThemeUI() {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.getElementById('themeIcon').textContent  = dark ? '☀️' : '🌙';
+  document.getElementById('themeLabel').textContent = dark ? 'Light' : 'Dark';
+}
+
+function toggleTheme() {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('mealplan-theme', next);
+  syncThemeUI();
+}
+
+// ── Init ──────────────────────────────────────────────────────
+syncThemeUI();
+buildPlan();
+buildShopping();
+</script>
+</body>
+</html>
