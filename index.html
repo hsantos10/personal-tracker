@@ -288,6 +288,24 @@ body {
   border-radius: 999px;
   margin-top: 4px;
 }
+.meal-macro {
+  display: inline-block;
+  background: var(--green-dim);
+  color: var(--green);
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 1px 7px;
+  border-radius: 999px;
+  margin-top: 4px;
+  margin-left: 4px;
+}
+.shop-price {
+  font-size: 0.65rem;
+  color: var(--green);
+  font-weight: 600;
+  margin-top: 2px;
+  line-height: 1.2;
+}
 
 /* ── Shopping Progress ───────────────────────────────────── */
 .shop-progress {
@@ -587,7 +605,7 @@ body {
   <div class="header-top">
     <div>
       <div class="header-title">David's Tracker</div>
-      <div class="header-sub">~2,100 cal/day · 95 kg · 500 cal deficit · 15 min meals</div>
+      <div class="header-sub">~2,100 cal target · 95 kg · ~150g protein · Sam's Club</div>
     </div>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">
       <span id="themeIcon"></span>
@@ -642,7 +660,7 @@ body {
     </div>
 
     <div class="shop-footer">
-      Estimated weekly total: <strong>$80–100</strong> · Tap items to check them off
+      Sam's Club · First haul ~<strong>$220</strong> · Ongoing weekly ~<strong>$60–80</strong> (bulk items last 2–4 wks) · Tap to check off
     </div>
     <button class="clear-btn" onclick="clearChecks()">↺ Clear all checks</button>
   </div>
@@ -651,87 +669,91 @@ body {
 
 <script>
 // ── Meal data ───────────────────────────────────────────────
+// Sam's Club items · MM = Member's Mark
+const BFAST = { type:'Breakfast', name:'3 Scrambled Eggs + 2 Whole Grain Toast', detail:"MM Cage-Free Eggs · MM Whole Grain Bread · black coffee", macro:'24g P · 30g C · 17g F', cal:'~375 cal' };
+
 const DAYS = [
-  { name:'Monday',    cal:'~2,080 cal', meals:[
-    { type:'Breakfast', name:'3 Scrambled Eggs + 2 Toast',                        detail:'Whole grain bread · black coffee',                     cal:'~400 cal' },
-    { type:'Lunch',     name:'Canned Tuna + Rice Cakes + Carrots + Apple',         detail:'No-cook · ready in 2 min',                             cal:'~550 cal' },
-    { type:'Dinner',    name:'Baked Salmon + Microwave Broccoli + Rice',           detail:'10 min oven · microwavable rice pouch',                 cal:'~730 cal' },
-    { type:'Snack',     name:'Cottage Cheese + Fruit',                            detail:'Any fruit on hand',                                    cal:'~200 cal' },
+  { name:'Monday',    cal:'~2,090 cal · P:146g · C:179g · F:59g', meals:[
+    BFAST,
+    { type:'Lunch',  name:'StarKist Tuna + Rice Cakes + Carrots + Apple',      detail:'1.5 cans chunk light · 4 Quaker Rice Cakes · MM Baby Carrots · no-cook, 2 min', macro:'44g P · 64g C · 2g F',  cal:'~490 cal' },
+    { type:'Dinner', name:'Baked MM Salmon + Rice Pouch + Frozen Broccoli',    detail:"8 oz MM Atlantic Salmon · Seeds of Change pouch · MM Frozen Broccoli · olive oil · 12 min",  macro:'53g P · 69g C · 35g F', cal:'~810 cal' },
+    { type:'Snack',  name:'MM Cottage Cheese + Frozen Berries',                detail:'1 cup MM Cottage Cheese · ½ cup MM Frozen Mixed Berries (thawed)',               macro:'25g P · 16g C · 5g F',  cal:'~215 cal' },
   ]},
-  { name:'Tuesday',   cal:'~2,100 cal', meals:[
-    { type:'Breakfast', name:'3 Scrambled Eggs + 2 Toast',                        detail:'Whole grain bread · black coffee',                     cal:'~400 cal' },
-    { type:'Lunch',     name:'Rotisserie Chicken + Microwave Rice + Cucumber',    detail:'Pre-cooked chicken · slice & serve',                   cal:'~550 cal' },
-    { type:'Dinner',    name:'Ground Turkey Stir-Fry + Frozen Veggies + Rice',    detail:'Soy sauce · garlic powder · 12 min total',             cal:'~730 cal' },
-    { type:'Snack',     name:'2 Hard Boiled Eggs',                                detail:'Prep Sunday night',                                    cal:'~140 cal' },
+  { name:'Tuesday',  cal:'~2,105 cal · P:142g · C:188g · F:65g', meals:[
+    BFAST,
+    { type:'Lunch',  name:"Sam's Rotisserie Chicken + Rice Pouch + Cucumber",  detail:"6 oz rotisserie breast · Seeds of Change pouch · sliced cucumber · slice & serve", macro:'47g P · 69g C · 12g F', cal:'~565 cal' },
+    { type:'Dinner', name:'MM Ground Turkey Stir-Fry + Frozen Veggies + Rice', detail:'7 oz MM Ground Turkey 93/7 · MM Frozen Stir-Fry Veggies · rice pouch · soy sauce · 12 min', macro:'49g P · 79g C · 15g F', cal:'~670 cal' },
+    { type:'Snack',  name:'2 Hard-Boiled Eggs + MM Almonds',                   detail:'MM Cage-Free Eggs (prep Sunday) · 1 oz MM Almonds',                               macro:'18g P · 6g C · 21g F',  cal:'~305 cal' },
   ]},
-  { name:'Wednesday', cal:'~2,090 cal', meals:[
-    { type:'Breakfast', name:'3 Scrambled Eggs + 2 Toast',                        detail:'Whole grain bread · black coffee',                     cal:'~400 cal' },
-    { type:'Lunch',     name:'Greek Yogurt + Banana + Almonds',                   detail:'Plain full-fat yogurt · ~25g almonds',                 cal:'~550 cal' },
-    { type:'Dinner',    name:'Pan-Fried Chicken Breast + Sweet Potato + Salad',   detail:'12 min pan · 5 min microwave sweet potato',            cal:'~740 cal' },
-    { type:'Snack',     name:'Apple + Peanut Butter',                             detail:'1 tbsp peanut butter',                                 cal:'~200 cal' },
+  { name:'Wednesday', cal:'~2,080 cal · P:129g · C:172g · F:62g', meals:[
+    BFAST,
+    { type:'Lunch',  name:'MM Greek Yogurt + Banana + Almonds',                detail:'1.5 cups MM Greek Yogurt plain · 1 banana · 1.5 oz MM Almonds',                  macro:'43g P · 51g C · 21g F', cal:'~550 cal' },
+    { type:'Dinner', name:'MM Chicken Breast + Sweet Potato + Romaine Salad',  detail:'8 oz MM Chicken Breast · large sweet potato (5 min microwave) · MM Chopped Romaine + olive oil', macro:'54g P · 68g C · 19g F', cal:'~640 cal' },
+    { type:'Snack',  name:'Apple + MM Peanut Butter',                          detail:'1 MM Gala Apple · 2 tbsp MM Peanut Butter',                                       macro:'8g P · 37g C · 17g F',  cal:'~270 cal' },
   ]},
-  { name:'Thursday',  cal:'~2,080 cal', meals:[
-    { type:'Breakfast', name:'3 Scrambled Eggs + 2 Toast',                        detail:'Whole grain bread · black coffee',                     cal:'~400 cal' },
-    { type:'Lunch',     name:'Canned Tuna + Rice Cakes + Carrots + Apple',        detail:'No-cook · ready in 2 min',                             cal:'~550 cal' },
-    { type:'Dinner',    name:'Baked Salmon + Microwave Broccoli + Rice',          detail:'10 min oven · microwavable rice pouch',                cal:'~730 cal' },
-    { type:'Snack',     name:'Cottage Cheese + Fruit',                            detail:'Any fruit on hand',                                    cal:'~200 cal' },
+  { name:'Thursday', cal:'~2,090 cal · P:146g · C:179g · F:59g', meals:[
+    BFAST,
+    { type:'Lunch',  name:'StarKist Tuna + Rice Cakes + Carrots + Apple',      detail:'1.5 cans chunk light · 4 Quaker Rice Cakes · MM Baby Carrots · no-cook, 2 min', macro:'44g P · 64g C · 2g F',  cal:'~490 cal' },
+    { type:'Dinner', name:'Baked MM Salmon + Rice Pouch + Frozen Broccoli',    detail:"8 oz MM Atlantic Salmon · Seeds of Change pouch · MM Frozen Broccoli · olive oil · 12 min",  macro:'53g P · 69g C · 35g F', cal:'~810 cal' },
+    { type:'Snack',  name:'MM Cottage Cheese + Frozen Berries',                detail:'1 cup MM Cottage Cheese · ½ cup MM Frozen Mixed Berries (thawed)',               macro:'25g P · 16g C · 5g F',  cal:'~215 cal' },
   ]},
-  { name:'Friday',    cal:'~2,100 cal', meals:[
-    { type:'Breakfast', name:'3 Scrambled Eggs + 2 Toast',                        detail:'Whole grain bread · black coffee',                     cal:'~400 cal' },
-    { type:'Lunch',     name:'Rotisserie Chicken + Microwave Rice + Cucumber',    detail:'Pre-cooked chicken · slice & serve',                   cal:'~550 cal' },
-    { type:'Dinner',    name:'Ground Turkey Stir-Fry + Frozen Veggies + Rice',    detail:'Soy sauce · garlic powder · 12 min total',             cal:'~730 cal' },
-    { type:'Snack',     name:'2 Hard Boiled Eggs',                                detail:'Prep Sunday night',                                    cal:'~140 cal' },
+  { name:'Friday',   cal:'~2,105 cal · P:142g · C:188g · F:65g', meals:[
+    BFAST,
+    { type:'Lunch',  name:"Sam's Rotisserie Chicken + Rice Pouch + Cucumber",  detail:"6 oz rotisserie breast · Seeds of Change pouch · sliced cucumber · slice & serve", macro:'47g P · 69g C · 12g F', cal:'~565 cal' },
+    { type:'Dinner', name:'MM Ground Turkey Stir-Fry + Frozen Veggies + Rice', detail:'7 oz MM Ground Turkey 93/7 · MM Frozen Stir-Fry Veggies · rice pouch · soy sauce · 12 min', macro:'49g P · 79g C · 15g F', cal:'~670 cal' },
+    { type:'Snack',  name:'2 Hard-Boiled Eggs + MM Almonds',                   detail:'MM Cage-Free Eggs (prep Sunday) · 1 oz MM Almonds',                               macro:'18g P · 6g C · 21g F',  cal:'~305 cal' },
   ]},
-  { name:'Saturday',  cal:'~2,090 cal', meals:[
-    { type:'Breakfast', name:'3 Scrambled Eggs + 2 Toast',                        detail:'Whole grain bread · black coffee',                     cal:'~400 cal' },
-    { type:'Lunch',     name:'Greek Yogurt + Banana + Almonds',                   detail:'Plain full-fat yogurt · ~25g almonds',                 cal:'~550 cal' },
-    { type:'Dinner',    name:'Pan-Fried Chicken Breast + Sweet Potato + Salad',   detail:'12 min pan · 5 min microwave sweet potato',            cal:'~740 cal' },
-    { type:'Snack',     name:'Apple + Peanut Butter',                             detail:'1 tbsp peanut butter',                                 cal:'~200 cal' },
+  { name:'Saturday', cal:'~2,080 cal · P:129g · C:172g · F:62g', meals:[
+    BFAST,
+    { type:'Lunch',  name:'MM Greek Yogurt + Banana + Almonds',                detail:'1.5 cups MM Greek Yogurt plain · 1 banana · 1.5 oz MM Almonds',                  macro:'43g P · 51g C · 21g F', cal:'~550 cal' },
+    { type:'Dinner', name:'MM Chicken Breast + Sweet Potato + Romaine Salad',  detail:'8 oz MM Chicken Breast · large sweet potato (5 min microwave) · MM Chopped Romaine + olive oil', macro:'54g P · 68g C · 19g F', cal:'~640 cal' },
+    { type:'Snack',  name:'Apple + MM Peanut Butter',                          detail:'1 MM Gala Apple · 2 tbsp MM Peanut Butter',                                       macro:'8g P · 37g C · 17g F',  cal:'~270 cal' },
   ]},
-  { name:'Sunday',    cal:'~2,080 cal', meals:[
-    { type:'Breakfast', name:'3 Scrambled Eggs + 2 Toast',                        detail:'Whole grain bread · black coffee',                     cal:'~400 cal' },
-    { type:'Lunch',     name:'Canned Tuna + Rice Cakes + Carrots + Apple',        detail:'No-cook · ready in 2 min',                             cal:'~550 cal' },
-    { type:'Dinner',    name:'Baked Salmon + Microwave Broccoli + Rice',          detail:'10 min oven · microwavable rice pouch',                cal:'~730 cal' },
-    { type:'Snack',     name:'Cottage Cheese + Fruit',                            detail:'Any fruit on hand',                                    cal:'~200 cal' },
+  { name:'Sunday',   cal:'~2,090 cal · P:146g · C:179g · F:59g', meals:[
+    BFAST,
+    { type:'Lunch',  name:'StarKist Tuna + Rice Cakes + Carrots + Apple',      detail:'1.5 cans chunk light · 4 Quaker Rice Cakes · MM Baby Carrots · no-cook, 2 min', macro:'44g P · 64g C · 2g F',  cal:'~490 cal' },
+    { type:'Dinner', name:'Baked MM Salmon + Rice Pouch + Frozen Broccoli',    detail:"8 oz MM Atlantic Salmon · Seeds of Change pouch · MM Frozen Broccoli · olive oil · 12 min",  macro:'53g P · 69g C · 35g F', cal:'~810 cal' },
+    { type:'Snack',  name:'MM Cottage Cheese + Frozen Berries',                detail:'1 cup MM Cottage Cheese · ½ cup MM Frozen Mixed Berries (thawed)',               macro:'25g P · 16g C · 5g F',  cal:'~215 cal' },
   ]},
 ];
 
-// ── Shopping data ────────────────────────────────────────────
+// ── Shopping data — Sam's Club ───────────────────────────────
+// prices are approximate Sam's Club in-store / app prices
 const SHOPPING = {
   proteins: [
-    'Eggs (18 pack)',
-    'Canned tuna (3 cans)',
-    'Rotisserie chicken (2×)',
-    'Salmon fillets (3×)',
-    'Ground turkey (500g)',
-    'Chicken breasts (2×)',
-    'Cottage cheese (tub)',
-    'Greek yogurt, plain (3×)',
+    { name:"MM Cage-Free Eggs, 60 ct",          price:"$14.98" },
+    { name:"StarKist Chunk Light Tuna, 12-pk",   price:"$14.98" },
+    { name:"Sam's Rotisserie Chicken, 2-pk",     price:"$11.98" },
+    { name:"MM Atlantic Salmon, 3 lb frozen",    price:"$21.98" },
+    { name:"MM Ground Turkey 93/7, 3 lb",        price:"$13.48" },
+    { name:"MM Chicken Breasts, 6.5 lb",         price:"$21.98" },
+    { name:"MM Cottage Cheese, 3 lb",            price:"$6.98"  },
+    { name:"MM Greek Yogurt Plain, 3 lb",        price:"$7.98"  },
   ],
   carbs: [
-    'Whole grain bread (loaf)',
-    'Microwavable rice (6 pouches)',
-    'Rice cakes (pack)',
-    'Sweet potatoes (2×)',
+    { name:"MM Whole Grain Bread, 2-pk",         price:"$6.98"  },
+    { name:"Seeds of Change Rice, 6-pk pouches", price:"$9.98"  },
+    { name:"Quaker Rice Cakes, 34 ct",           price:"$7.98"  },
+    { name:"MM Sweet Potatoes, 10 lb",           price:"$9.48"  },
   ],
   veg: [
-    'Frozen broccoli (large bag)',
-    'Frozen stir-fry veggies (bag)',
-    'Baby carrots (bag)',
-    'Cucumber (2×)',
-    'Salad bag (2×)',
+    { name:"MM Frozen Broccoli Florets, 5 lb",   price:"$7.48"  },
+    { name:"MM Frozen Stir-Fry Veggies, 5 lb",   price:"$8.98"  },
+    { name:"MM Baby Carrots, 5 lb",              price:"$5.98"  },
+    { name:"MM Chopped Romaine, 3-pk",           price:"$5.98"  },
+    { name:"Cucumbers, 6-pk",                    price:"$4.98"  },
   ],
   fruit: [
-    'Apples (6×)',
-    'Bananas (bunch)',
-    'Mixed berries / fruit',
+    { name:"MM Gala Apples, 5 lb",               price:"$7.98"  },
+    { name:"Bananas, bunch (~3 lb)",             price:"$1.98"  },
+    { name:"MM Frozen Mixed Berries, 4 lb",      price:"$10.98" },
   ],
   pantry: [
-    'Peanut butter (jar)',
-    'Almonds (small bag)',
-    'Soy sauce (bottle)',
-    'Olive oil / cooking spray',
-    'Salt, pepper, garlic powder',
+    { name:"MM Peanut Butter, 6.5 lb",           price:"$12.98" },
+    { name:"MM Almonds, 3 lb",                   price:"$16.98" },
+    { name:"Kikkoman Soy Sauce, 2-pk",           price:"$7.98"  },
+    { name:"MM Extra Virgin Olive Oil, 2 L",     price:"$14.98" },
+    { name:"Salt, Pepper & Garlic Powder set",   price:"$6.98"  },
   ],
 };
 
@@ -767,7 +789,7 @@ function buildPlan() {
         <div>
           <div class="meal-name">${m.name}</div>
           <div class="meal-detail">${m.detail}</div>
-          <span class="meal-cal">${m.cal}</span>
+          <span class="meal-cal">${m.cal}</span><span class="meal-macro">${m.macro}</span>
         </div>
       </div>`).join('');
 
@@ -798,12 +820,12 @@ function buildShopping() {
     const grid = document.getElementById('cat-' + cat);
     grid.innerHTML = '';
     items.forEach(item => {
-      const key     = cat + ':' + item;
+      const key     = cat + ':' + item.name;
       const checked = !!saved[key];
       const el      = document.createElement('div');
       el.className  = 'shop-item' + (checked ? ' checked' : '');
       el.dataset.key = key;
-      el.innerHTML  = `<div class="check-box">${checked ? '✓' : ''}</div><span>${item}</span>`;
+      el.innerHTML  = `<div class="check-box">${checked ? '✓' : ''}</div><div><div>${item.name}</div><div class="shop-price">${item.price}</div></div>`;
       el.onclick    = () => toggleCheck(el);
       grid.appendChild(el);
     });
