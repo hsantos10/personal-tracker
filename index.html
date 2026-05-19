@@ -411,6 +411,163 @@ body {
 }
 .clear-btn:active { background: var(--surface2); color: var(--text); }
 
+/* ── ML Progress ─────────────────────────────────────────── */
+.ml-overview {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 13px 15px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.ml-overview-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 0.84rem;
+}
+.ml-overview-row .label { font-weight: 500; }
+.ml-overview-row .count { color: var(--muted); font-size: 0.78rem; }
+
+.ml-phase-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin: 14px 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ml-phase-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.ml-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  margin-bottom: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: border-color .2s;
+}
+.ml-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 56px;
+}
+.ml-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.ml-info { flex: 1; min-width: 0; }
+.ml-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.ml-week {
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-top: 1px;
+}
+.ml-status-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  border: none;
+  font-family: var(--sans);
+  -webkit-tap-highlight-color: transparent;
+}
+.ml-chevron {
+  color: var(--muted);
+  font-size: 0.8rem;
+  transition: transform .28s cubic-bezier(.4,0,.2,1);
+  flex-shrink: 0;
+}
+.ml-card.open .ml-chevron { transform: rotate(180deg); }
+
+.ml-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .35s cubic-bezier(.4,0,.2,1);
+}
+.ml-card.open .ml-body { max-height: 400px; }
+
+.ml-body-inner {
+  border-top: 1px solid var(--border);
+  padding: 12px 14px 14px;
+}
+.ml-summary-text {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+.ml-notes-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.ml-notes {
+  width: 100%;
+  min-height: 70px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 0.8rem;
+  font-family: var(--sans);
+  color: var(--text);
+  resize: vertical;
+  outline: none;
+  transition: border-color .2s;
+  box-sizing: border-box;
+}
+.ml-notes:focus { border-color: var(--accent); }
+.ml-status-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.ml-status-btn {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--sans);
+  transition: all .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* ── Desktop ─────────────────────────────────────────────── */
 @media (min-width: 480px) {
   .header-title   { font-size: 1.4rem; }
@@ -429,7 +586,7 @@ body {
 <header class="site-header">
   <div class="header-top">
     <div>
-      <div class="header-title">David's Meal Plan</div>
+      <div class="header-title">David's Tracker</div>
       <div class="header-sub">~2,100 cal/day · 95 kg · 500 cal deficit · 15 min meals</div>
     </div>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">
@@ -440,6 +597,7 @@ body {
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('plan', this)">📅 Meal Plan</button>
     <button class="tab-btn"        onclick="switchTab('shop', this)">🛒 Shopping</button>
+    <button class="tab-btn"        onclick="switchTab('ml', this)">🧠 ML Progress</button>
   </div>
 </header>
 
@@ -447,6 +605,9 @@ body {
 
   <!-- ── Meal Plan Tab ──────────────────────────────────── -->
   <div class="tab-content active" id="tab-plan"></div>
+
+  <!-- ── ML Progress Tab ───────────────────────────────── -->
+  <div class="tab-content" id="tab-ml"></div>
 
   <!-- ── Shopping Tab ──────────────────────────────────── -->
   <div class="tab-content" id="tab-shop">
@@ -695,10 +856,159 @@ function toggleTheme() {
   syncThemeUI();
 }
 
+// ── ML Topics ────────────────────────────────────────────────
+const ML_TOPICS = [
+  { id:'gpu-mental-model', phase:1, phaseLabel:'Phase 1 · GPU Foundation',   title:'GPU Mental Model',        week:'Wk 1–2',   icon:'⚡', color:'#2563EB', summary:'Memory hierarchy (registers → shared → HBM), thread/block/grid, warp execution, SIMT, arithmetic intensity, roofline model.' },
+  { id:'triton-kernels',   phase:1, phaseLabel:'Phase 1 · GPU Foundation',   title:'Triton Kernels',          week:'Wk 3–4',   icon:'🔧', color:'#7C3AED', summary:'Hardware-portable GPU kernels in Python. Programming model, blocked pointers, comparing to CUDA, writing real kernels.' },
+  { id:'flashattention',   phase:1, phaseLabel:'Phase 1 · GPU Foundation',   title:'FlashAttention',          week:'Wk 5–6',   icon:'📄', color:'#0891B2', summary:'IO-aware attention. Why NxN materialisation is slow, tiling, online softmax, FA1 vs FA2, SRAM vs HBM tradeoffs.' },
+  { id:'efficientml',      phase:2, phaseLabel:'Phase 2 · Inference Optimization', title:'Efficient ML',     week:'Wk 7–8',   icon:'🗜️', color:'#059669', summary:'Quantization (PTQ/QAT, INT8/INT4/FP8, SmoothQuant, GPTQ), pruning (N:M sparsity), knowledge distillation.' },
+  { id:'vllm',             phase:2, phaseLabel:'Phase 2 · Inference Optimization', title:'vLLM & Inference', week:'Wk 9–10',  icon:'🚀', color:'#D97706', summary:'PagedAttention, KV cache fragmentation, continuous batching, speculative decoding, tensor parallelism.' },
+  { id:'tvm-mlir',         phase:3, phaseLabel:'Phase 3 · Compiler Layer',   title:'TVM & MLIR',              week:'Wk 11–14', icon:'🔩', color:'#B45309', summary:'Compilation pipeline, kernel fusion, layout optimization, Relay IR, MetaSchedule, MLIR dialects, XLA.' },
+];
+
+const STATUS_OPTS = [
+  { key:'none',       label:'Not Started', bg:'var(--surface2)',  color:'var(--muted)' },
+  { key:'active',     label:'In Progress', bg:'#FEF9C3',          color:'#A16207'      },
+  { key:'done',       label:'Completed',   bg:'var(--green-dim)', color:'var(--green)' },
+];
+
+const ML_KEY = 'tracker-ml';
+
+function loadMlData() {
+  try { return JSON.parse(localStorage.getItem(ML_KEY) || '{}'); } catch { return {}; }
+}
+function saveMlData(d) { localStorage.setItem(ML_KEY, JSON.stringify(d)); }
+
+function buildMl() {
+  const container = document.getElementById('tab-ml');
+  container.innerHTML = '';
+  const data = loadMlData();
+
+  // Overview bar
+  const total = ML_TOPICS.length;
+  const done  = ML_TOPICS.filter(t => (data[t.id]?.status || 'none') === 'done').length;
+  const pct   = total ? (done / total) * 100 : 0;
+
+  const overview = document.createElement('div');
+  overview.className = 'ml-overview';
+  overview.innerHTML = `
+    <div class="ml-overview-row">
+      <span class="label">Overall progress</span>
+      <span class="count" id="ml-count">${done} / ${total} topics completed</span>
+    </div>
+    <div class="bar-bg"><div class="bar-fill" id="ml-bar" style="background:var(--green);width:${pct}%"></div></div>`;
+  container.appendChild(overview);
+
+  // Group by phase
+  const phases = [...new Set(ML_TOPICS.map(t => t.phase))];
+  phases.forEach(ph => {
+    const topics = ML_TOPICS.filter(t => t.phase === ph);
+    const phLabel = topics[0].phaseLabel;
+
+    const lbl = document.createElement('div');
+    lbl.className = 'ml-phase-label';
+    lbl.style.color = topics[0].color;
+    lbl.textContent = phLabel;
+    container.appendChild(lbl);
+
+    topics.forEach(topic => {
+      const td     = data[topic.id] || { status: 'none', notes: '' };
+      const status = STATUS_OPTS.find(s => s.key === td.status) || STATUS_OPTS[0];
+      const card   = document.createElement('div');
+      card.className = 'ml-card';
+      card.id = 'ml-card-' + topic.id;
+
+      card.innerHTML = `
+        <div class="ml-card-header" onclick="toggleMlCard('${topic.id}')">
+          <div class="ml-icon" style="background:${topic.color}18;border:1.5px solid ${topic.color}33">${topic.icon}</div>
+          <div class="ml-info">
+            <div class="ml-title">${topic.title}</div>
+            <div class="ml-week">${topic.week}</div>
+          </div>
+          <span class="ml-status-pill" id="pill-${topic.id}"
+            style="background:${status.bg};color:${status.color};border:1px solid ${status.color}44">
+            ${status.label}
+          </span>
+          <span class="ml-chevron">▾</span>
+        </div>
+        <div class="ml-body">
+          <div class="ml-body-inner">
+            <div class="ml-summary-text">${topic.summary}</div>
+            <div class="ml-status-row">
+              ${STATUS_OPTS.map(s => `
+                <button class="ml-status-btn" id="sbtn-${topic.id}-${s.key}"
+                  onclick="setMlStatus('${topic.id}','${s.key}')"
+                  style="${td.status===s.key ? `background:${s.bg};color:${s.color};border-color:${s.color}` : ''}">
+                  ${s.label}
+                </button>`).join('')}
+            </div>
+            <div class="ml-notes-label">Notes</div>
+            <textarea class="ml-notes" id="notes-${topic.id}"
+              placeholder="Key takeaways, questions, links…"
+              oninput="saveMlNotes('${topic.id}', this.value)">${td.notes || ''}</textarea>
+          </div>
+        </div>`;
+
+      container.appendChild(card);
+    });
+  });
+}
+
+function toggleMlCard(id) {
+  document.getElementById('ml-card-' + id).classList.toggle('open');
+}
+
+function setMlStatus(topicId, statusKey) {
+  const data = loadMlData();
+  if (!data[topicId]) data[topicId] = { status: 'none', notes: '' };
+  data[topicId].status = statusKey;
+  saveMlData(data);
+
+  const status = STATUS_OPTS.find(s => s.key === statusKey);
+  const pill   = document.getElementById('pill-' + topicId);
+  pill.textContent = status.label;
+  pill.style.background   = status.bg;
+  pill.style.color        = status.color;
+  pill.style.borderColor  = status.color + '44';
+
+  STATUS_OPTS.forEach(s => {
+    const btn = document.getElementById(`sbtn-${topicId}-${s.key}`);
+    if (!btn) return;
+    if (s.key === statusKey) {
+      btn.style.background   = s.bg;
+      btn.style.color        = s.color;
+      btn.style.borderColor  = s.color;
+    } else {
+      btn.style.background  = '';
+      btn.style.color       = '';
+      btn.style.borderColor = '';
+    }
+  });
+
+  updateMlBar();
+}
+
+function saveMlNotes(topicId, value) {
+  const data = loadMlData();
+  if (!data[topicId]) data[topicId] = { status: 'none', notes: '' };
+  data[topicId].notes = value;
+  saveMlData(data);
+}
+
+function updateMlBar() {
+  const data  = loadMlData();
+  const total = ML_TOPICS.length;
+  const done  = ML_TOPICS.filter(t => (data[t.id]?.status || 'none') === 'done').length;
+  const pct   = total ? (done / total) * 100 : 0;
+  document.getElementById('ml-count').textContent = `${done} / ${total} topics completed`;
+  document.getElementById('ml-bar').style.width   = pct + '%';
+}
+
 // ── Init ──────────────────────────────────────────────────────
 syncThemeUI();
 buildPlan();
 buildShopping();
+buildMl();
 </script>
 </body>
 </html>
